@@ -18,91 +18,89 @@ import org.apache.ignite.spi.metric.jmx.JmxMetricExporterSpi;
 import ignite.data.CacheKey;
 import ignite.data.ContractDTOSimple;
 
-public class IgniteConfigFactory
-{
-    public  <T> CacheConfiguration<CacheKey, T> produceCacheConfiguration(CacheMode cacheMode, CacheAtomicityMode atomicityMode, String cacheName)
-    {
-        final CacheConfiguration<CacheKey, T> cacheConfiguration = new CacheConfiguration<>(cacheName);
+public class IgniteConfigFactory {
+	public <T> CacheConfiguration<CacheKey, T> produceCacheConfiguration(CacheMode cacheMode,
+			CacheAtomicityMode atomicityMode, String cacheName) {
+		final CacheConfiguration<CacheKey, T> cacheConfiguration = new CacheConfiguration<>(cacheName);
 
-        cacheConfiguration.setCacheMode(cacheMode);
+		cacheConfiguration.setCacheMode(cacheMode);
 
-        cacheConfiguration.setAtomicityMode(atomicityMode);
+		cacheConfiguration.setAtomicityMode(atomicityMode);
 
-        cacheConfiguration.setDataRegionName("Default_Region");
-        
-        cacheConfiguration.setIndexedTypes(CacheKey.class, ContractDTOSimple.class);
-        cacheConfiguration.setKeyConfiguration(new CacheKeyConfiguration(CacheKey.class));
-        
-        cacheConfiguration.setBackups(0);
+		cacheConfiguration.setDataRegionName("Default_Region");
 
-        cacheConfiguration.setCopyOnRead(false);
+		cacheConfiguration.setIndexedTypes(CacheKey.class, ContractDTOSimple.class);
+		cacheConfiguration.setKeyConfiguration(new CacheKeyConfiguration(CacheKey.class));
 
-        cacheConfiguration.setEventsDisabled(true);
+		cacheConfiguration.setBackups(0);
 
-        return cacheConfiguration;
+		cacheConfiguration.setCopyOnRead(false);
 
-    }
+		cacheConfiguration.setEventsDisabled(true);
 
-    public IgniteConfiguration produceIgniteConfiguration(boolean withPersistence, PageReplacementMode pageReplacementMode, boolean writeThrottlingEnabled, int walSegmentSize, String walStorePath, String walArchivePath, int checkpointFreq, WALMode walMode, String storagePath, String workDir)
-    {
-        DataStorageConfiguration dataStorageConfiguration = new DataStorageConfiguration()
-                .setDefaultDataRegionConfiguration(createDefaultDataRegionConfiguration(DataPageEvictionMode.DISABLED, 4L*1024*1024*1024));
-        dataStorageConfiguration.setCheckpointReadLockTimeout(0);
-        if (withPersistence)
-        {
-            configurePersistence(dataStorageConfiguration, pageReplacementMode, writeThrottlingEnabled, walSegmentSize, walStorePath, walArchivePath, checkpointFreq, walMode, storagePath);
-        }
+		return cacheConfiguration;
 
-        IgniteConfiguration igniteConfiguration = new IgniteConfiguration();
+	}
 
-        igniteConfiguration.setIgniteInstanceName("IgniteDataGrid");
+	public IgniteConfiguration produceIgniteConfiguration(boolean withPersistence,
+			PageReplacementMode pageReplacementMode, boolean writeThrottlingEnabled, int walSegmentSize,
+			String walStorePath, String walArchivePath, int checkpointFreq, WALMode walMode, String storagePath,
+			String workDir) {
 
+		DataStorageConfiguration dataStorageConfiguration = new DataStorageConfiguration()
+				.setDefaultDataRegionConfiguration(
+						createDefaultDataRegionConfiguration(DataPageEvictionMode.DISABLED, 4L * 1024 * 1024 * 1024));
+		dataStorageConfiguration.setCheckpointReadLockTimeout(0);
 
-        igniteConfiguration.setWorkDirectory(workDir);
-        igniteConfiguration.setMetricsLogFrequency(0L);
-        igniteConfiguration.setMetricExporterSpi(new JmxMetricExporterSpi());
+		if (withPersistence) {
+			configurePersistence(dataStorageConfiguration, pageReplacementMode, writeThrottlingEnabled, walSegmentSize,
+					walStorePath, walArchivePath, checkpointFreq, walMode, storagePath);
+		}
 
-        igniteConfiguration.setDiscoverySpi(new IsolatedDiscoverySpi());
+		IgniteConfiguration igniteConfiguration = new IgniteConfiguration();
 
-        igniteConfiguration.setCommunicationSpi(new StandaloneNoopCommunicationSpi());
+		igniteConfiguration.setIgniteInstanceName("IgniteDataGrid");
 
-        igniteConfiguration.setDataStorageConfiguration(dataStorageConfiguration);
-        
-        SqlConfiguration c =  new SqlConfiguration();
-       // c.setQueryEnginesConfiguration(new CalciteQueryEngineConfiguration());
-        igniteConfiguration.setSqlConfiguration(c);
-        return igniteConfiguration;
-    }
+		igniteConfiguration.setWorkDirectory(workDir);
+		igniteConfiguration.setMetricsLogFrequency(0L);
+		igniteConfiguration.setMetricExporterSpi(new JmxMetricExporterSpi());
 
-    private void configurePersistence(DataStorageConfiguration dataStorageConfiguration, PageReplacementMode pageReplacementMode, boolean writeThrottlingEnabled, int walSegmentSize, String walStorePath, String walArchivePath, int checkpointFreq, WALMode logOnly, String storagePath)
-    {
-        dataStorageConfiguration.getDefaultDataRegionConfiguration()
-                .setPersistenceEnabled(true)
-                .setPageReplacementMode(pageReplacementMode);
+		/*
+		 * igniteConfiguration.setDiscoverySpi(new IsolatedDiscoverySpi());
+		 * igniteConfiguration.setCommunicationSpi(new
+		 * StandaloneNoopCommunicationSpi());
+		 */
 
-        dataStorageConfiguration
-                .setWriteThrottlingEnabled(writeThrottlingEnabled)
-                .setWalSegmentSize(walSegmentSize)
-                .setWalPath(walStorePath)
-                .setWalArchivePath(walArchivePath)                
-                .setCheckpointFrequency(checkpointFreq)
-                .setWalMode(logOnly);
+		igniteConfiguration.setDataStorageConfiguration(dataStorageConfiguration);
+		SqlConfiguration c = new SqlConfiguration();
+		// c.setQueryEnginesConfiguration(new CalciteQueryEngineConfiguration());
+		igniteConfiguration.setSqlConfiguration(c);
+		return igniteConfiguration;
+	}
 
-        if (storagePath != null && !storagePath.isEmpty())
-        {
-            dataStorageConfiguration.setStoragePath(storagePath);
-        }
-    }
+	private void configurePersistence(DataStorageConfiguration dataStorageConfiguration,
+			PageReplacementMode pageReplacementMode, boolean writeThrottlingEnabled, int walSegmentSize,
+			String walStorePath, String walArchivePath, int checkpointFreq, WALMode logOnly, String storagePath) {
 
+		dataStorageConfiguration.getDefaultDataRegionConfiguration().setPersistenceEnabled(true)
+				.setPageReplacementMode(pageReplacementMode);
 
-    private DataRegionConfiguration createDefaultDataRegionConfiguration(DataPageEvictionMode dataPageEvictionMode, long maxSize)
-    {
-        return new DataRegionConfiguration()
-                .setName("Default_Region")
-                .setMetricsEnabled(false)
-                .setPageEvictionMode(dataPageEvictionMode)
-                .setCheckpointPageBufferSize(maxSize / 4)
-                .setMaxSize(maxSize);
-    }
+		dataStorageConfiguration.setWriteThrottlingEnabled(writeThrottlingEnabled).setWalSegmentSize(walSegmentSize)
+				.setMaxWalArchiveSize(-1).setWalPath(walStorePath).setWalArchivePath(walArchivePath)
+				.setCheckpointFrequency(checkpointFreq).setWalMode(logOnly);
+
+		if (storagePath != null && !storagePath.isEmpty()) {
+			dataStorageConfiguration.setStoragePath(storagePath);
+		}
+
+	}
+
+	private DataRegionConfiguration createDefaultDataRegionConfiguration(DataPageEvictionMode dataPageEvictionMode,
+			long maxSize) {
+		return new DataRegionConfiguration().setName("Default_Region")
+				.setMetricsEnabled(false).setPageEvictionMode(dataPageEvictionMode)
+				.setCheckpointPageBufferSize(maxSize / 4)
+				.setMaxSize(maxSize);
+	}
 
 }

@@ -146,6 +146,9 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.0.0-M7</version>
 				<configuration>
+					<enableAssertions>false</enableAssertions>
+					<reuseForks>false</reuseForks>
+					
 					<argLine>-Xmx4G -Xms4G -DIGNITE_QUIET=false -Djava.net.preferIPv4Stack=true -DIGNITE_DIRECT_IO_ENABLED=true -XX:MaxDirectMemorySize=256M -XX:+AlwaysPreTouch -XX:+UseG1GC -XX:+ScavengeBeforeFullGC -XX:+DisableExplicitGC</argLine>
 				</configuration>
 			</plugin>

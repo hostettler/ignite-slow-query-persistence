@@ -20,6 +20,7 @@ import javax.cache.Cache.Entry;
 
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
+import org.apache.ignite.IgniteCluster;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.binary.BinaryField;
 import org.apache.ignite.binary.BinaryObject;
@@ -85,23 +86,33 @@ class IgniteCtCpCacheManagerTest {
 
 		try (Ignite ignite = Ignition.start(igniteConfiguration)) {
 			ignite.cluster().state(ClusterState.ACTIVE);
+			
+			
 			IgniteCache<CacheKey, ContractDTOSimple> cache = ignite.getOrCreateCache(cacheConfiguration);
 			cache.clear();
 
 			// insert data
+
+			Instant startInsert = Instant.now();
 			insertData(entriesCount, batchSize, cache);
-			
+			System.out.printf("Inserting data took %d ms %n",
+					Duration.between(startInsert, Instant.now()).toMillis());
+//			
 			System.out.println("Wait 120s to let the grid cool down.");
 			Thread.sleep(120_000);
-
+//
 			ExecutorService executor = Executors.newFixedThreadPool(12);
 			int partitionBatchSize = 64;
 			int partitionsCount = ignite.affinity(cache.getName()).partitions();
 
-//			SqlFieldsQuery sqlFieldsQuery = performSqlQuery(cache);
-//			performScanQuery(ignite, cache, sqlFieldsQuery, partitionBatchSize, executor, partitionsCount);
-			performSqlPerPartition(ignite, cache, partitionsCount, executor, partitionBatchSize);
+			String sql = "select  distinct  dataGroupId from " + ContractDTOSimple.class.getSimpleName().toLowerCase()
+					+ ";";
+//			performSqlQuery(cache, sql);
+			performScanQuery(ignite, cache, partitionBatchSize, executor, partitionsCount);
+//			performSqlPerPartition(ignite, cache, sql, partitionsCount, executor, partitionBatchSize);
 //			performSqlCount(cache);
+			
+			ignite.close();
 		}
 
 	}
@@ -131,14 +142,15 @@ class IgniteCtCpCacheManagerTest {
 		}
 	}
 
-	private void performScanQuery(Ignite ignite, IgniteCache<CacheKey, ContractDTOSimple> cache,
-			SqlFieldsQuery sqlFieldsQuery, int partitionBatchSize, ExecutorService executor, int partitionsCount)
+	private void performSqlPerPartition(Ignite ignite, IgniteCache<CacheKey, ContractDTOSimple> cache,
+			String sql, int partitionBatchSize, ExecutorService executor, int partitionsCount)
 			throws InterruptedException {
 		Instant startQuery;
 		System.out.println("*************************************************");
 		System.out.println("******* Execute SQL Query per partition *********");
 		System.out.println("*************************************************");
 
+		SqlFieldsQuery sqlFieldsQuery = new SqlFieldsQuery(sql);
 		Set<Long> myResults = new HashSet<Long>();
 		List<Callable<Set<Long>>> callableTasks = new ArrayList<>();
 
@@ -182,13 +194,12 @@ class IgniteCtCpCacheManagerTest {
 
 	}
 
-	private SqlFieldsQuery performSqlQuery(IgniteCache<CacheKey, ContractDTOSimple> cache) {
+	private SqlFieldsQuery performSqlQuery(IgniteCache<CacheKey, ContractDTOSimple> cache, String sql) {
 		System.out.println("*************************************************");
 		System.out.println("*************** Execute SQL Query ***************");
 		System.out.println("*************************************************");
 
-		String sql = "select  distinct  dataGroupId from " + ContractDTOSimple.class.getSimpleName().toLowerCase()
-				+ ";";
+
 		System.out.println("Executing " + sql);
 
 		SqlFieldsQuery sqlFieldsQuery = new SqlFieldsQuery(sql);
@@ -214,7 +225,7 @@ class IgniteCtCpCacheManagerTest {
 		System.out.println("Total count in cache: " + count);
 	}
 
-	private void performSqlPerPartition(Ignite ignite, IgniteCache<CacheKey, ContractDTOSimple> cache,
+	private void performScanQuery(Ignite ignite, IgniteCache<CacheKey, ContractDTOSimple> cache,
 			int partitionsCount, ExecutorService executor, int partitionBatchSize) throws InterruptedException {
 
 		BinaryObjectBuilder builder = ignite.binary().builder(CacheKey.class.getCanonicalName());
@@ -271,10 +282,15 @@ class IgniteCtCpCacheManagerTest {
 				.getAll().get(0).get(0);
 	}
 
+	
+	public static void main(String[] args) throws InterruptedException {
+		new IgniteCtCpCacheManagerTest().testWithPersistenceSimpleClass();
+	}
 	@Test
 	void testWithPersistenceSimpleClass() throws InterruptedException {
-		runTest(true, PageReplacementMode.CLOCK, false, 64 * 1024 * 1024, "db/wal", "db/wal/archive", 180000,
+		String igniteWorkDirPath="./target/ignite"; //"C:\\temp";
+		runTest(false, PageReplacementMode.CLOCK, false, (2 * 1024 * 1024 * 1024) - 1 , "db/wal", "db/wal/archive", 180000,
 				WALMode.NONE, null, CacheMode.PARTITIONED, CacheAtomicityMode.ATOMIC, ContractDTOSimple.class,
-				20L * 655_360, 65_536, Path.of("./target/ignite").toAbsolutePath().toString());
+				20L * 655_360, 65_536, Path.of(igniteWorkDirPath).toAbsolutePath().toString());		
 	}
 }
