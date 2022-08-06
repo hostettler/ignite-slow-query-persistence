@@ -73,6 +73,15 @@ class IgniteCtCpCacheManagerTest {
 			CacheAtomicityMode atomicityMode, Class<T> dataClass, long entriesCount, long batchSize, String workDir)
 			throws InterruptedException {
 
+		System.out.println("*************************************************************");
+		System.out.println("*************************************************************");
+		System.out.println(" Persistence : " + withPersistence);
+		System.out.println(" Throttling : " + writeThrottlingEnabled);
+		System.out.println(" WAL MODE : " + walMode);
+		System.out.println("*************************************************************");
+		System.out.println("*************************************************************");
+		
+		
 		// Ignite configuration
 		IgniteConfiguration igniteConfiguration = configFactory.produceIgniteConfiguration(withPersistence,
 				pageReplacementMode, writeThrottlingEnabled, walSegmentSize, walStorePath, walArchivePath,
@@ -289,7 +298,7 @@ class IgniteCtCpCacheManagerTest {
 	@Test
 	void testWithPersistenceSimpleClass() throws InterruptedException {
 		String igniteWorkDirPath="./target/ignite"; //"C:\\temp";
-		runTest(false, PageReplacementMode.CLOCK, false, (2 * 1024 * 1024 * 1024) - 1 , "db/wal", "db/wal/archive", 180000,
+		runTest(true, PageReplacementMode.CLOCK, false, (2 * 1024 * 1024 * 1024) - 1 , "db/wal", "db/wal/archive", 180000,
 				WALMode.NONE, null, CacheMode.PARTITIONED, CacheAtomicityMode.ATOMIC, ContractDTOSimple.class,
 				20L * 655_360, 65_536, Path.of(igniteWorkDirPath).toAbsolutePath().toString());		
 	}
