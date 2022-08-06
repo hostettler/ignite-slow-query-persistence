@@ -84,7 +84,7 @@ public class IgniteConfigFactory
                 .setWriteThrottlingEnabled(writeThrottlingEnabled)
                 .setWalSegmentSize(walSegmentSize)
                 .setWalPath(walStorePath)
-                .setWalArchivePath(walArchivePath)
+                .setWalArchivePath(walArchivePath)                
                 .setCheckpointFrequency(checkpointFreq)
                 .setWalMode(logOnly);
 
@@ -101,6 +101,7 @@ public class IgniteConfigFactory
                 .setName("Default_Region")
                 .setMetricsEnabled(false)
                 .setPageEvictionMode(dataPageEvictionMode)
+                .setCheckpointPageBufferSize(maxSize / 4)
                 .setMaxSize(maxSize);
     }
 

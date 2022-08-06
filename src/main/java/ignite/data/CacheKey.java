@@ -9,8 +9,10 @@ public final class CacheKey implements Serializable
 {
     private static final long serialVersionUID = -8460496823936658235L;
 
-    @AffinityKeyMapped
+    
     private final Long dataGroupId;
+    
+    @AffinityKeyMapped
     private final String softLinkKey;
 
     public CacheKey(Long dataGroupId, String softLinkKey)
