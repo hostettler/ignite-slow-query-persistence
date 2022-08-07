@@ -11,8 +11,6 @@ import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.PageReplacementMode;
 import org.apache.ignite.configuration.SqlConfiguration;
 import org.apache.ignite.configuration.WALMode;
-import org.apache.ignite.internal.processors.cache.persistence.wal.reader.StandaloneNoopCommunicationSpi;
-import org.apache.ignite.spi.discovery.isolated.IsolatedDiscoverySpi;
 import org.apache.ignite.spi.metric.jmx.JmxMetricExporterSpi;
 
 import ignite.data.CacheKey;
@@ -99,7 +97,6 @@ public class IgniteConfigFactory {
 			long maxSize) {
 		return new DataRegionConfiguration().setName("Default_Region")
 				.setMetricsEnabled(false).setPageEvictionMode(dataPageEvictionMode)
-				.setCheckpointPageBufferSize(maxSize / 4)
 				.setMaxSize(maxSize);
 	}
 

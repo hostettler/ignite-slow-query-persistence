@@ -77,6 +77,7 @@ class IgniteCtCpCacheManagerTest {
 		System.out.println("*************************************************************");
 		System.out.println(" Persistence : " + withPersistence);
 		System.out.println(" Throttling : " + writeThrottlingEnabled);
+		System.out.println(" PageReplacement : " + pageReplacementMode);
 		System.out.println(" WAL MODE : " + walMode);
 		System.out.println("*************************************************************");
 		System.out.println("*************************************************************");
@@ -107,8 +108,8 @@ class IgniteCtCpCacheManagerTest {
 			System.out.printf("Inserting data took %d ms %n",
 					Duration.between(startInsert, Instant.now()).toMillis());
 //			
-			System.out.println("Wait 120s to let the grid cool down.");
-			Thread.sleep(120_000);
+//			System.out.println("Wait 120s to let the grid cool down.");
+//			Thread.sleep(120_000);
 //
 			ExecutorService executor = Executors.newFixedThreadPool(12);
 			int partitionBatchSize = 64;
@@ -117,7 +118,7 @@ class IgniteCtCpCacheManagerTest {
 			String sql = "select  distinct  dataGroupId from " + ContractDTOSimple.class.getSimpleName().toLowerCase()
 					+ ";";
 //			performSqlQuery(cache, sql);
-			performScanQuery(ignite, cache, partitionBatchSize, executor, partitionsCount);
+			performScanQuery(ignite, cache, partitionsCount, executor, partitionBatchSize);
 //			performSqlPerPartition(ignite, cache, sql, partitionsCount, executor, partitionBatchSize);
 //			performSqlCount(cache);
 			
@@ -253,7 +254,7 @@ class IgniteCtCpCacheManagerTest {
 
 		myResults.clear();
 		callableTasks = new ArrayList<>();
-
+		
 		for (int i = 0; i < partitionsCount / partitionBatchSize; i++) {
 			final int p = i;
 			Callable<Set<Long>> callableTask = () -> {
@@ -282,7 +283,7 @@ class IgniteCtCpCacheManagerTest {
 				e.printStackTrace();
 			}
 		});
-		System.out.printf("Distinct Manual %d ms %n", Duration.between(startQuery, Instant.now()).toMillis());
+		System.out.printf("Distinct Scan Query %d ms %n", Duration.between(startQuery, Instant.now()).toMillis());
 		System.out.println(myResults);
 	}
 
@@ -298,8 +299,15 @@ class IgniteCtCpCacheManagerTest {
 	@Test
 	void testWithPersistenceSimpleClass() throws InterruptedException {
 		String igniteWorkDirPath="./target/ignite"; //"C:\\temp";
-		runTest(true, PageReplacementMode.CLOCK, false, (2 * 1024 * 1024 * 1024) - 1 , "db/wal", "db/wal/archive", 180000,
-				WALMode.NONE, null, CacheMode.PARTITIONED, CacheAtomicityMode.ATOMIC, ContractDTOSimple.class,
-				20L * 655_360, 65_536, Path.of(igniteWorkDirPath).toAbsolutePath().toString());		
+		
+		Boolean persistence = Boolean.valueOf(System.getProperty("persistence", "NONE"));
+		WALMode walMode =  WALMode.valueOf(System.getProperty("walMode", "NONE"));
+		Boolean throtting = Boolean.valueOf(System.getProperty("throtting", "false"));
+		PageReplacementMode pageReplacementMode = PageReplacementMode.valueOf(System.getProperty("PageReplacementMode", "CLOCK"));
+		
+		
+		runTest(persistence, pageReplacementMode, throtting, (2 * 1024 * 1024 * 1024) - 1 , "db/wal", "db/wal/archive", 180000,
+				walMode, null, CacheMode.PARTITIONED, CacheAtomicityMode.ATOMIC, ContractDTOSimple.class,
+				1L * 655_360, 65_536, Path.of(igniteWorkDirPath).toAbsolutePath().toString());		
 	}
 }
