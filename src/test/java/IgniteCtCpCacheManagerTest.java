@@ -167,7 +167,7 @@ class IgniteCtCpCacheManagerTest {
 	}
 
 	private void performSqlPerPartition(Ignite ignite, IgniteCache<CacheKey, ContractDTOSimple> cache, String sql,
-			int partitionBatchSize, ExecutorService executor, int partitionsCount) throws InterruptedException {
+			int partitionsCount, ExecutorService executor, int partitionBatchSize) throws InterruptedException {
 		Instant startQuery;
 		System.out.println("*************************************************");
 		System.out.println("******* Execute SQL Query per partition *********");
@@ -317,7 +317,7 @@ class IgniteCtCpCacheManagerTest {
 		Boolean throtting = Boolean.valueOf(System.getProperty("throtting", "false"));
 		PageReplacementMode pageReplacementMode = PageReplacementMode
 				.valueOf(System.getProperty("PageReplacementMode", "CLOCK"));
-		QUERY_MODE queryMode = QUERY_MODE.valueOf(System.getProperty("queryMode", "PARTITIONED_SCAN_QUERY"));
+		QUERY_MODE queryMode = QUERY_MODE.valueOf(System.getProperty("queryMode", "PARTITION_SQL_QUERY"));
 		Long multiplicator =Long.valueOf(System.getProperty("multiplicator", "1"));
 
 		runTest(persistence, pageReplacementMode, throtting, (2 * 1024 * 1024 * 1024) - 1, "db/wal", "db/wal/archive",
