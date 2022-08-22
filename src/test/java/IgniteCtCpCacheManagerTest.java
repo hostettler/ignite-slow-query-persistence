@@ -20,7 +20,6 @@ import javax.cache.Cache.Entry;
 
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
-import org.apache.ignite.IgniteCluster;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.binary.BinaryField;
 import org.apache.ignite.binary.BinaryObject;
@@ -71,7 +70,7 @@ class IgniteCtCpCacheManagerTest {
 	 * @param <T>
 	 * @throws InterruptedException
 	 */
-	private <T> void runTest(boolean withPersistence, PageReplacementMode pageReplacementMode,
+	private <T> void runTest(Long offhmemory, boolean withPersistence, PageReplacementMode pageReplacementMode,
 			boolean writeThrottlingEnabled, int walSegmentSize, String walStorePath, String walArchivePath,
 			int checkpointFreq, WALMode walMode, String storagePath, CacheMode cacheMode,
 			CacheAtomicityMode atomicityMode, Class<T> dataClass, long entriesCount, long batchSize, String workDir,
@@ -80,6 +79,7 @@ class IgniteCtCpCacheManagerTest {
 		System.out.println("*************************************************************");
 		System.out.println("*************************************************************");
 		System.out.println(" Entries : " + entriesCount);
+		System.out.println(" Off heap in G : " + offhmemory);
 		System.out.println(" Persistence : " + withPersistence);
 		System.out.println(" Throttling : " + writeThrottlingEnabled);
 		System.out.println(" PageReplacement : " + pageReplacementMode);
@@ -89,7 +89,7 @@ class IgniteCtCpCacheManagerTest {
 		System.out.println("*************************************************************");
 
 		// Ignite configuration
-		IgniteConfiguration igniteConfiguration = configFactory.produceIgniteConfiguration(withPersistence,
+		IgniteConfiguration igniteConfiguration = configFactory.produceIgniteConfiguration(offhmemory, withPersistence,
 				pageReplacementMode, writeThrottlingEnabled, walSegmentSize, walStorePath, walArchivePath,
 				checkpointFreq, walMode, storagePath, workDir);
 
@@ -312,6 +312,7 @@ class IgniteCtCpCacheManagerTest {
 	void testWithPersistenceSimpleClass() throws InterruptedException {
 		String igniteWorkDirPath = "./target/ignite"; // "C:\\temp";
 
+		Long offhmemory = Long.valueOf(System.getProperty("offhmemory", "4"));
 		Boolean persistence = Boolean.valueOf(System.getProperty("persistence", "NONE"));
 		WALMode walMode = WALMode.valueOf(System.getProperty("walMode", "NONE"));
 		Boolean throtting = Boolean.valueOf(System.getProperty("throtting", "false"));
@@ -320,7 +321,7 @@ class IgniteCtCpCacheManagerTest {
 		QUERY_MODE queryMode = QUERY_MODE.valueOf(System.getProperty("queryMode", "PARTITION_SQL_QUERY"));
 		Long multiplicator =Long.valueOf(System.getProperty("multiplicator", "1"));
 
-		runTest(persistence, pageReplacementMode, throtting, (2 * 1024 * 1024 * 1024) - 1, "db/wal", "db/wal/archive",
+		runTest(offhmemory, persistence, pageReplacementMode, throtting, (2 * 1024 * 1024 * 1024) - 1, "db/wal", "db/wal/archive",
 				180000, walMode, null, CacheMode.PARTITIONED, CacheAtomicityMode.ATOMIC, ContractDTOSimple.class,
 				multiplicator * 655_360L, 65_536, Path.of(igniteWorkDirPath).toAbsolutePath().toString(), queryMode);
 	}

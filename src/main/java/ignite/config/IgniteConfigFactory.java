@@ -40,14 +40,14 @@ public class IgniteConfigFactory {
 
 	}
 
-	public IgniteConfiguration produceIgniteConfiguration(boolean withPersistence,
+	public IgniteConfiguration produceIgniteConfiguration(Long offhmemory, boolean withPersistence,
 			PageReplacementMode pageReplacementMode, boolean writeThrottlingEnabled, int walSegmentSize,
 			String walStorePath, String walArchivePath, int checkpointFreq, WALMode walMode, String storagePath,
 			String workDir) {
 
 		DataStorageConfiguration dataStorageConfiguration = new DataStorageConfiguration()
 				.setDefaultDataRegionConfiguration(
-						createDefaultDataRegionConfiguration(DataPageEvictionMode.DISABLED, 4L * 1024 * 1024 * 1024));
+						createDefaultDataRegionConfiguration(DataPageEvictionMode.DISABLED, offhmemory * 1024 * 1024 * 1024));
 		dataStorageConfiguration.setCheckpointReadLockTimeout(0);
 
 		if (withPersistence) {
