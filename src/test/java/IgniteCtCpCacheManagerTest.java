@@ -111,8 +111,10 @@ class IgniteCtCpCacheManagerTest {
 			insertData(entriesCount, batchSize, cache);
 			System.out.printf("Inserting data took %d ms %n", Duration.between(startInsert, Instant.now()).toMillis());
 //			
-			System.out.println("Wait 120s to let the grid cool down.");
-			Thread.sleep(300_000);
+			if (withPersistence) {
+				System.out.println("Wait 120s to let the grid cool down.");
+				Thread.sleep(300_000);
+			}
 //
 			ExecutorService executor = Executors.newFixedThreadPool(12);
 			int partitionBatchSize = 64;
